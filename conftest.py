@@ -1,42 +1,32 @@
 import pytest
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from pages.login_page import LoginPage
-import os
-from datetime import datetime
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def driver():
-    driver = webdriver.Chrome()
-    driver.maximize_window()
+    options = Options()
+    options.add_argument("--headless=new")   # required for CI
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+
+    driver = webdriver.Chrome(options=options)
+    driver.implicitly_wait(5)
+
     yield driver
+
     driver.quit()
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def logged_in_driver(driver):
     login = LoginPage(driver)
     login.open()
     login.login("Sanskruthi School - Nalgonda", "8247282479")
 
-    assert login.is_logged_in()
+    assert login.is_logged_in(), "Login failed!"
+
     return driver
-
-
-# ✅ Screenshot hook
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item):
-    outcome = yield
-    report = outcome.get_result()
-
-    if report.when == "call" and report.failed:
-        driver = item.funcargs.get("driver") or item.funcargs.get("logged_in_driver")
-        if driver:
-            folder = "screenshots"
-            os.makedirs(folder, exist_ok=True)
-
-            file_name = f"{item.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
-            path = os.path.join(folder, file_name)
-
-            driver.save_screenshot(path)
-            print(f"\n📸 Screenshot saved: {path}")

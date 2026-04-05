@@ -1,6 +1,8 @@
 from pages.login_page import LoginPage
 from pages.lesson_plan_page import LessonPlanPage
 
+import pytest
+@pytest.mark.order(2)
 def test_lesson_pdf(driver):
     login = LoginPage(driver)
     login.open()

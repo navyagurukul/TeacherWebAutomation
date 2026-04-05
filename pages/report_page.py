@@ -42,3 +42,12 @@ class ReportPage:
             "//table//tr"
         )
         return len(rows)
+def wait_for_loader_to_disappear(self):
+    try:
+        self.wait.until(
+            EC.invisibility_of_element_located(
+                (By.XPATH, "//div[contains(@style,'rgba(0, 0, 0, 0.2)')]")
+            )
+        )
+    except:
+        pass
